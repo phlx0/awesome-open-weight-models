@@ -33,9 +33,10 @@ jobs:
             --exclude "https://x.com"
             --exclude "https://discord.gg"
             --exclude-mail
-            --timeout 30
+            --timeout 60
             --retry-wait-time 5
             --max-retries 3
+            --user-agent "Mozilla/5.0 (compatible; lychee link checker)"
             README.md
           fail: true
           jobSummary: true
