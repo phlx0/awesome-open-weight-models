@@ -1,17 +1,13 @@
+# Awesome Open-Weight Models [![Awesome](https://awesome.re/badge-flat2.svg)](https://awesome.re)
+
+> The practitioner's guide to open-weight LLMs — benchmarks, licensing, hardware requirements, deployment stacks, and fine-tuning. Curated for engineers shipping real products.
+
 <div align="center">
 
-<h1>Awesome Open-Weight Models</h1>
-
-<p><strong>The practitioner's guide to open-weight LLMs — benchmarks, licensing, hardware, deployment, and fine-tuning.</strong><br/>
-Curated for engineers shipping real products in 2026.</p>
-
-[![Awesome](https://awesome.re/badge-flat2.svg)](https://awesome.re)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 [![Last Updated](https://img.shields.io/badge/updated-April%202026-blue.svg?style=flat-square)]()
 [![License: CC0](https://img.shields.io/badge/license-CC0-lightgrey.svg?style=flat-square)](https://creativecommons.org/publicdomain/zero/1.0/)
 [![Models](https://img.shields.io/badge/models-30%2B-orange.svg?style=flat-square)]()
-
-<br/>
 
 **Not a paper list. Not a hype list. A decision-making tool.**
 
@@ -661,12 +657,22 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 ---
 
+## Star History
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=USERNAME/awesome-open-weight-models&type=Date)](https://star-history.com/#USERNAME/awesome-open-weight-models&Date)
+
+</div>
+
+---
+
 <div align="center">
 
 [![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
 
 **CC0 — No rights reserved.**
 
-*If this list saved you research time, consider starring it and sharing it with a colleague.*
+*If this list saved you research time, star it and share it.*
 
 </div>
