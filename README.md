@@ -661,7 +661,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=USERNAME/awesome-open-weight-models&type=Date)](https://star-history.com/#USERNAME/awesome-open-weight-models&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=phlx0/awesome-open-weight-models&type=Date)](https://star-history.com/#phlx0/awesome-open-weight-models&Date)
 
 </div>
 
