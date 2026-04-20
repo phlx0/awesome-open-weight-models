@@ -1,556 +1,672 @@
-# Awesome Open-Weight Models [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
+<div align="center">
 
-> A practitioner-first guide to open-weight language models: benchmarks, licensing, hardware requirements, deployment stacks, and per-task recommendations — curated for engineers shipping real products.
+<h1>Awesome Open-Weight Models</h1>
+
+<p><strong>The practitioner's guide to open-weight LLMs — benchmarks, licensing, hardware, deployment, and fine-tuning.</strong><br/>
+Curated for engineers shipping real products in 2026.</p>
+
+[![Awesome](https://awesome.re/badge-flat2.svg)](https://awesome.re)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
+[![Last Updated](https://img.shields.io/badge/updated-April%202026-blue.svg?style=flat-square)]()
+[![License: CC0](https://img.shields.io/badge/license-CC0-lightgrey.svg?style=flat-square)](https://creativecommons.org/publicdomain/zero/1.0/)
+[![Models](https://img.shields.io/badge/models-30%2B-orange.svg?style=flat-square)]()
+
+<br/>
 
 **Not a paper list. Not a hype list. A decision-making tool.**
 
-Every entry answers: *should I use this model for my use case, and how?*
+*Every entry answers: should I use this model, and how?*
 
----
+<br/>
 
-## Contents
+[Quick Pick](#-quick-pick) &nbsp;·&nbsp;
+[Model Families](#-model-families) &nbsp;·&nbsp;
+[Benchmarks](#-benchmark-tables) &nbsp;·&nbsp;
+[Licensing](#-licensing-guide) &nbsp;·&nbsp;
+[Hardware](#-hardware-requirements) &nbsp;·&nbsp;
+[Deployment](#-deployment-stacks) &nbsp;·&nbsp;
+[Fine-tuning](#-fine-tuning) &nbsp;·&nbsp;
+[Evaluation](#-evaluation-tools)
 
-- [Why This List](#why-this-list)
-- [Model Families](#model-families)
-  - [Qwen (Alibaba)](#qwen-alibaba)
-  - [Gemma (Google)](#gemma-google)
-  - [Llama (Meta)](#llama-meta)
-  - [DeepSeek](#deepseek)
-  - [Mistral](#mistral)
-  - [GLM (Zhipu AI)](#glm-zhipu-ai)
-  - [Phi (Microsoft)](#phi-microsoft)
-  - [Command R (Cohere)](#command-r-cohere)
-- [Benchmark Comparison Tables](#benchmark-comparison-tables)
-- [Licensing Guide](#licensing-guide)
-- [Hardware Requirements](#hardware-requirements)
-- [Per-Task Recommendations](#per-task-recommendations)
-- [Deployment Stacks](#deployment-stacks)
-- [Quantization Guide](#quantization-guide)
-- [Fine-Tuning Resources](#fine-tuning-resources)
-- [Evaluation Tools](#evaluation-tools)
-- [Community & Leaderboards](#community--leaderboards)
-- [Contributing](#contributing)
+</div>
 
 ---
 
 ## Why This List
 
-April 2026 is the most competitive month in open-source AI history. In a single quarter, six major labs shipped Apache 2.0-licensed frontier models that rival proprietary alternatives:
+April 2026 is the most competitive moment in open-source AI history. Six major labs shipped Apache 2.0 frontier models in a single quarter:
 
-| Model | Lab | License | Release |
-|---|---|---|---|
-| Qwen 3.5 | Alibaba | Apache 2.0 | Mar 2026 |
-| Gemma 4 | Google DeepMind | Apache 2.0 | Apr 2, 2026 |
-| Llama 4 | Meta | Llama 4 Community | Mar 2026 |
-| DeepSeek V4 | DeepSeek | MIT | Feb 2026 |
-| Mistral Small 4 | Mistral AI | Apache 2.0 | Mar 2026 |
-| GLM-5.1 | Zhipu AI | Apache 2.0 | Apr 2026 |
+| Model | Lab | License | Context | Released |
+| :--- | :--- | :---: | ---: | :---: |
+| **Qwen 3.5** | Alibaba | `Apache 2.0` | 128K | Mar 2026 |
+| **Gemma 4** | Google DeepMind | `Apache 2.0` | 128K | Apr 2026 |
+| **Llama 4** | Meta | `Community` | 10M | Mar 2026 |
+| **DeepSeek V4** | DeepSeek | `MIT` | 128K | Feb 2026 |
+| **Mistral Small 4** | Mistral AI | `Apache 2.0` | 128K | Mar 2026 |
+| **GLM-5.1** | Zhipu AI | `Apache 2.0` | 128K | Apr 2026 |
 
-Developers face an impossible evaluation problem. This list is the single authoritative reference.
+Developers face an information overload crisis with no single authoritative reference. This is it.
 
 ---
 
-## Model Families
+## ⚡ Quick Pick
 
-### Qwen (Alibaba)
+> Skip the research. These are the right defaults for each use case.
 
-**License**: Apache 2.0 across all sizes. Most commercially deployed open-weight family globally.
+| I need to… | Use this | Size | VRAM |
+| :--- | :--- | :---: | ---: |
+| **Code generation** | DeepSeek-Coder-V3 | 33B | 22 GB Q4 |
+| **Hard reasoning / math** | QwQ-32B | 32B | 20 GB Q4 |
+| **Best general model (no limits)** | Qwen3.5-72B | 72B | 45 GB Q4 |
+| **Best general model (≤24 GB VRAM)** | Qwen3.5-32B | 32B | 20 GB Q4 |
+| **Best general model (≤8 GB VRAM)** | Qwen3.5-7B | 7B | 5 GB Q4 |
+| **Agent / function calling** | Mistral Small 4 | 22B | 14 GB Q4 |
+| **Multilingual** | Qwen3.5-72B | 72B | 45 GB Q4 |
+| **Vision / document OCR** | Qwen3.5-VL-72B | 72B | 45 GB Q4 |
+| **RAG with citations** | Command R+ | 104B | — (hosted) |
+| **Huge context (1M–10M tokens)** | Llama 4 Scout 17B | 17B MoE | 38 GB |
+| **On-device / mobile** | Phi-4-mini | 3.8B | 3 GB Q4 |
+| **Fully open commercial (MIT)** | DeepSeek V4 | 685B MoE | API/hosted |
+
+---
+
+## 🗺️ Decision Flowchart
+
+```mermaid
+flowchart TD
+    A([What do I need?]) --> B{Primary use case}
+
+    B --> |💻 Coding| C{Size limit?}
+    C --> |Any size| C1[DeepSeek-Coder-V3 33B]
+    C --> |≤8 GB VRAM| C2[Qwen3.5-7B]
+
+    B --> |🧮 Math / Reasoning| D{Budget?}
+    D --> |Max quality| D1[DeepSeek-R2]
+    D --> |Efficient| D2[QwQ-32B]
+
+    B --> |🌐 General purpose| E{VRAM?}
+    E --> |≤8 GB| E1[Qwen3.5-7B]
+    E --> |≤24 GB| E2[Qwen3.5-32B]
+    E --> |≤48 GB| E3[Qwen3.5-72B Q4]
+    E --> |Any| E4[DeepSeek-V4]
+
+    B --> |🌍 Multilingual| F[Qwen3.5-72B]
+
+    B --> |🤖 Agent / Tool use| G[Mistral Small 4]
+
+    B --> |🔍 RAG| H{Scale?}
+    H --> |Enterprise| H1[Command R+]
+    H --> |Self-hosted| H2[Qwen3.5-72B]
+
+    B --> |👁️ Vision / Multimodal| I[Qwen3.5-VL-72B]
+
+    B --> |📱 On-device| J[Phi-4-mini 3.8B]
+```
+
+---
+
+## 📋 Contents
+
+- [Why This List](#why-this-list)
+- [Quick Pick](#-quick-pick)
+- [Decision Flowchart](#️-decision-flowchart)
+- [Model Families](#-model-families)
+  - [Qwen — Alibaba](#qwen--alibaba)
+  - [Gemma — Google](#gemma--google)
+  - [Llama — Meta](#llama--meta)
+  - [DeepSeek](#deepseek)
+  - [Mistral](#mistral)
+  - [GLM — Zhipu AI](#glm--zhipu-ai)
+  - [Phi — Microsoft](#phi--microsoft)
+  - [Command R — Cohere](#command-r--cohere)
+- [Benchmark Tables](#-benchmark-tables)
+- [Licensing Guide](#-licensing-guide)
+- [Hardware Requirements](#-hardware-requirements)
+- [Per-Task Recommendations](#-per-task-recommendations)
+- [Deployment Stacks](#-deployment-stacks)
+- [Quantization Guide](#-quantization-guide)
+- [Fine-Tuning](#-fine-tuning)
+- [Evaluation Tools](#-evaluation-tools)
+- [Community & Leaderboards](#-community--leaderboards)
+- [Contributing](#contributing)
+
+---
+
+## 🤖 Model Families
+
+### Qwen — Alibaba
+
+`Apache 2.0` &nbsp; Most commercially deployed open-weight family globally. Best multilingual coverage. Widest size range (0.5B → 72B).
+
+<details open>
+<summary><strong>Language Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| Qwen3.5-0.5B | 0.5B | 32K | Edge, embedding | On-device, IoT |
-| Qwen3.5-1.8B | 1.8B | 32K | Tiny but capable | Mobile, edge inference |
-| Qwen3.5-7B | 7B | 128K | Multilingual, coding | General dev tasks |
+| :--- | ---: | ---: | :--- | :--- |
+| Qwen3.5-0.5B | 0.5B | 32K | Ultra-tiny, embedding | IoT, edge, classification |
+| Qwen3.5-1.8B | 1.8B | 32K | Mobile-class | On-device, mobile apps |
+| Qwen3.5-7B | 7B | 128K | Multilingual, coding | General dev, 8 GB VRAM builds |
 | Qwen3.5-14B | 14B | 128K | Code + reasoning | Production coding agents |
-| Qwen3.5-32B | 32B | 128K | Near-frontier | Best open model under 70B |
-| Qwen3.5-72B | 72B | 128K | Frontier-class | Production RAG, complex reasoning |
-| Qwen3.5-VL-7B | 7B | 128K | Vision-language | Multimodal apps |
-| Qwen3.5-VL-72B | 72B | 128K | Best open VLM | Document understanding, OCR |
-| QwQ-32B | 32B | 128K | Extended thinking | Math, hard reasoning |
+| Qwen3.5-32B | **32B** | 128K | Near-frontier | **Best model under 40B** |
+| Qwen3.5-72B | **72B** | 128K | Frontier-class | **Best Apache 2.0 overall** |
+| QwQ-32B | 32B | 128K | Extended thinking | Math, hard reasoning chains |
 
-**Resources**
-- [Official HuggingFace org](https://huggingface.co/Qwen)
-- [Qwen Blog](https://qwenlm.github.io/)
-- [Qwen2.5 Technical Report](https://arxiv.org/abs/2412.15115) — still most complete reference
-- [Awesome Qwen](https://github.com/QwenLM/awesome-qwen) — official resource list
+</details>
 
-**Deployment notes**: Qwen family has the best GGUF quantization support. Q4_K_M recommended sweet spot for quality/speed.
+<details>
+<summary><strong>Vision-Language Models</strong></summary>
+
+| Model | Params | Context | Strengths | Best For |
+| :--- | ---: | ---: | :--- | :--- |
+| Qwen3.5-VL-7B | 7B | 128K | Efficient vision | Image QA, fast multimodal |
+| Qwen3.5-VL-72B | **72B** | 128K | **Best open VLM** | Document OCR, complex visual reasoning |
+
+</details>
+
+**Resources** — [HuggingFace](https://huggingface.co/Qwen) · [Blog](https://qwenlm.github.io/) · [Technical Report](https://arxiv.org/abs/2412.15115) · [Awesome Qwen](https://github.com/QwenLM/awesome-qwen)
+
+> **Tip**: Best GGUF quantization support of any family. Q4\_K\_M is the recommended sweet spot for quality vs. speed.
 
 ---
 
-### Gemma (Google)
+### Gemma — Google
 
-**License**: Apache 2.0 (Gemma 4 onward). Major shift from prior Gemma license restrictions.
+`Apache 2.0` &nbsp; Major license shift from Gemma 1/2. Best JAX/TPU performance. Strong EU language support.
+
+<details open>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
+| :--- | ---: | ---: | :--- | :--- |
 | Gemma4-2B | 2B | 32K | Tiny, quality-dense | Edge, classification |
 | Gemma4-7B | 7B | 128K | Reasoning, instruction-following | Chatbots, RAG |
-| Gemma4-27B | 27B | 128K | Near-GPT-4o level | Production apps |
-| Gemma4-70B | 70B | 128K | Frontier | Enterprise deployments |
-| Gemma4-27B-IT | 27B | 128K | Instruct-tuned | RLHF-ready baseline |
-| ShieldGemma-2 | 9B | — | Safety classification | Content moderation |
+| Gemma4-27B | **27B** | 128K | Near-GPT-4o level | **Production apps, fits 2× RTX 4090** |
+| Gemma4-70B | 70B | 128K | Frontier | Enterprise GPU deployments |
+| Gemma4-27B-IT | 27B | 128K | Instruct-tuned | RLHF baseline, alignment work |
+| ShieldGemma-2 | 9B | — | Safety classifier | Content moderation pipeline |
 
-**Resources**
-- [Gemma on HuggingFace](https://huggingface.co/google/gemma)
-- [Google AI for Developers — Gemma](https://ai.google.dev/gemma)
-- [Gemma 4 Technical Report](https://ai.google.dev/gemma/docs/gemma4)
-- [Gemma.cpp](https://github.com/google/gemma.cpp) — C++ inference, edge deployment
+</details>
 
-**Deployment notes**: Best-in-class JAX/TPU performance. For GPU inference, use with vLLM or Ollama. Gemma4-27B fits in 24GB VRAM at Q4.
+**Resources** — [HuggingFace](https://huggingface.co/google/gemma) · [Google AI Docs](https://ai.google.dev/gemma) · [Gemma 4 Report](https://ai.google.dev/gemma/docs/gemma4) · [gemma.cpp](https://github.com/google/gemma.cpp)
+
+> **Tip**: Gemma4-27B fits in 24 GB VRAM at Q4. Best JAX/TPU throughput of any open model.
 
 ---
 
-### Llama (Meta)
+### Llama — Meta
 
-**License**: Llama 4 Community License — free for products under 700M MAU. Not Apache 2.0.
+`Llama 4 Community License` &nbsp; Largest ecosystem. Widest tool support. **Not Apache 2.0** — read the license.
+
+<details open>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| Llama 4 Scout 17B | 17B (MoE) | 10M | Huge context, multimodal | Document analysis |
-| Llama 4 Maverick 17B | 17B (MoE) | 1M | Balanced, multimodal | General purpose |
-| Llama 3.3 70B | 70B | 128K | Mature ecosystem | Production, widest tool support |
+| :--- | ---: | ---: | :--- | :--- |
+| Llama 4 Scout 17B | 17B MoE | **10M** | Longest context, multimodal | Massive document analysis |
+| Llama 4 Maverick 17B | 17B MoE | 1M | Balanced, multimodal | General purpose MoE |
+| Llama 3.3 70B | 70B | 128K | Mature ecosystem | **Production (widest tool support)** |
 | Llama 3.2 3B | 3B | 128K | Lightweight | On-device, iOS/Android |
 | Llama 3.2 11B Vision | 11B | 128K | Vision | Image understanding |
 
-> **License Warning**: Llama 4 Community License restricts use if your product has >700M monthly active users. Meta must approve large-scale deployments. For unrestricted commercial use, prefer Apache 2.0 models (Qwen, Gemma 4, DeepSeek).
+</details>
 
-**Resources**
-- [Meta Llama official](https://llama.meta.com/)
-- [Llama on HuggingFace](https://huggingface.co/meta-llama)
-- [awesome-llama](https://github.com/imaurer/awesome-decentralized-llama) — ecosystem resources
-- [Llama.cpp](https://github.com/ggml-org/llama.cpp) — gold standard CPU/GPU inference
+> ⚠️ **License Warning**: The Llama 4 Community License restricts products with **>700M monthly active users** and requires Meta approval for large-scale deployments. For unrestricted commercial use, prefer Apache 2.0 models (Qwen 3.5, Gemma 4, DeepSeek, Mistral Small 4).
+
+**Resources** — [llama.meta.com](https://llama.meta.com/) · [HuggingFace](https://huggingface.co/meta-llama) · [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
 ---
 
 ### DeepSeek
 
-**License**: MIT on most models. Fully permissive, no usage restrictions.
+`MIT` &nbsp; Fully permissive. No usage restrictions. MoE architecture means high capability at lower serving cost per token.
+
+<details open>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| DeepSeek-V4 | 685B (MoE) | 128K | Frontier reasoning | Self-hosted frontier API replacement |
-| DeepSeek-V4-0324 | 685B (MoE) | 128K | Updated, stronger | Coding, math, analysis |
-| DeepSeek-R2 | 671B (MoE) | 128K | Chain-of-thought | Hard reasoning tasks |
-| DeepSeek-Coder-V3 | 33B | 128K | Code-specialized | Code generation, review |
-| DeepSeek-V4-Lite | 16B (MoE) | 128K | Fast, efficient | Low-latency inference |
+| :--- | ---: | ---: | :--- | :--- |
+| DeepSeek-V4 | 685B MoE | 128K | Frontier reasoning | Self-hosted GPT-4o replacement |
+| DeepSeek-V4-0324 | 685B MoE | 128K | Stronger reasoning + coding | **Best open model overall** |
+| DeepSeek-R2 | 671B MoE | 128K | Chain-of-thought specialist | **Best open model for math** |
+| DeepSeek-Coder-V3 | 33B | 128K | Code-specialized | **Best open coder** |
+| DeepSeek-V4-Lite | 16B MoE | 128K | Fast, low-latency | High-throughput APIs |
 
-> **Self-hosting note**: Full DeepSeek-V4 requires 8× H100 80GB. For smaller setups, use DeepSeek-V4-Lite or run via compatible API providers that serve the full model.
+</details>
 
-**Resources**
-- [DeepSeek on HuggingFace](https://huggingface.co/deepseek-ai)
-- [DeepSeek GitHub](https://github.com/deepseek-ai)
-- [DeepSeek-V3 Technical Report](https://arxiv.org/abs/2412.19437) — MoE architecture deep dive
+> **Self-hosting note**: Full DeepSeek-V4/R2 requires 8× H100 80GB. For smaller setups, use DeepSeek-Coder-V3 33B or access via managed API providers (Together AI, Fireworks).
+
+**Resources** — [HuggingFace](https://huggingface.co/deepseek-ai) · [GitHub](https://github.com/deepseek-ai) · [V3 Technical Report](https://arxiv.org/abs/2412.19437)
 
 ---
 
 ### Mistral
 
-**License**: Apache 2.0 (Mistral Small 4 onward). Earlier models have custom "Mistral AI Non-Production" license — check before commercial use.
+`Apache 2.0` (Mistral Small 4+) &nbsp; Best function-calling at its size class. Optimized for agentic workflows.
+
+<details open>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| Mistral Small 4 | 22B | 128K | Efficiency king, function calling | Agentic workflows, tool use |
-| Mistral-7B-v0.3 | 7B | 32K | Mature, widely supported | Starter model, fine-tuning base |
-| Mixtral-8x7B | 56B (MoE) | 32K | Fast MoE inference | High-throughput inference |
-| Mixtral-8x22B | 141B (MoE) | 65K | High capability | Complex tasks, low serving cost |
-| Codestral | 22B | 32K | Code-specialized, FIM | Code completion (Copilot replacement) |
+| :--- | ---: | ---: | :--- | :--- |
+| Mistral Small 4 | **22B** | 128K | Function calling, efficiency | **Agent workflows, tool use** |
+| Codestral | 22B | 32K | FIM, code-specialized | Code completion (Copilot alternative) |
+| Mixtral-8x22B | 141B MoE | 65K | High capability | Low-cost-per-token serving |
+| Mixtral-8x7B | 56B MoE | 32K | Fast MoE | High-throughput inference |
 | Mistral-Nemo | 12B | 128K | NVIDIA partnership | Edge-to-cloud continuity |
+| Mistral-7B-v0.3 | 7B | 32K | Mature, wide support | Fine-tuning base, experiments |
 
-**Resources**
-- [Mistral AI on HuggingFace](https://huggingface.co/mistralai)
-- [Mistral Documentation](https://docs.mistral.ai/)
-- [Mistral Cookbook](https://github.com/mistralai/cookbook) — recipes and examples
+</details>
+
+> ⚠️ Earlier Mistral models (Mistral-7B prior to v0.3, Mistral Medium) have a custom "Mistral AI Non-Production" license. Check before commercial use.
+
+**Resources** — [HuggingFace](https://huggingface.co/mistralai) · [Docs](https://docs.mistral.ai/) · [Cookbook](https://github.com/mistralai/cookbook)
 
 ---
 
-### GLM (Zhipu AI)
+### GLM — Zhipu AI
 
-**License**: Apache 2.0 (GLM-5.1).
+`Apache 2.0` &nbsp; Best-in-class for Chinese-English bilingual tasks. Strongest Chinese document OCR.
+
+<details>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| GLM-5.1-9B | 9B | 128K | Bilingual (EN/ZH), fast | Chinese-English applications |
+| :--- | ---: | ---: | :--- | :--- |
+| GLM-5.1-9B | 9B | 128K | Bilingual EN/ZH, fast | Chinese-English apps |
 | GLM-5.1-32B | 32B | 128K | Strong reasoning | Competitive with Qwen 32B |
-| GLM-4V | 9B | 8K | Vision + Chinese | Document OCR, Chinese multimodal |
-| CogVideoX | — | — | Video generation | Video AI applications |
+| GLM-4V | 9B | 8K | Vision + Chinese | Chinese document OCR |
+| CogVideoX | — | — | Video generation | AI video applications |
 
-**Resources**
-- [Zhipu on HuggingFace](https://huggingface.co/THUDM)
-- [ChatGLM GitHub](https://github.com/THUDM/ChatGLM3)
+</details>
 
----
-
-### Phi (Microsoft)
-
-**License**: MIT.
-
-| Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
-| Phi-4 | 14B | 16K | Best-in-class at size | Mobile, constrained compute |
-| Phi-4-mini | 3.8B | 16K | Tiny but punches up | On-device reasoning |
-| Phi-4-multimodal | 5.6B | 128K | Vision + audio | Edge multimodal |
-
-**Resources**
-- [Phi on HuggingFace](https://huggingface.co/microsoft/phi-4)
-- [Phi-4 Technical Report](https://arxiv.org/abs/2412.08905)
+**Resources** — [HuggingFace](https://huggingface.co/THUDM) · [GitHub](https://github.com/THUDM/ChatGLM3)
 
 ---
 
-### Command R (Cohere)
+### Phi — Microsoft
 
-**License**: CC-BY-NC-4.0 for research, commercial license required for production.
+`MIT` &nbsp; Best quality-per-parameter at small sizes. Ideal for on-device and mobile deployment.
+
+<details>
+<summary><strong>Models</strong></summary>
 
 | Model | Params | Context | Strengths | Best For |
-|---|---|---|---|---|
+| :--- | ---: | ---: | :--- | :--- |
+| Phi-4 | 14B | 16K | Best-in-class at size | Constrained GPU setups |
+| Phi-4-mini | **3.8B** | 16K | Tiny, punches above weight | **On-device, mobile, iOS/Android** |
+| Phi-4-multimodal | 5.6B | 128K | Vision + audio | Edge multimodal apps |
+
+</details>
+
+**Resources** — [HuggingFace](https://huggingface.co/microsoft/phi-4) · [Phi-4 Technical Report](https://arxiv.org/abs/2412.08905)
+
+---
+
+### Command R — Cohere
+
+`CC-BY-NC-4.0` &nbsp; Purpose-built for RAG with built-in citation generation. Requires commercial license for production.
+
+<details>
+<summary><strong>Models</strong></summary>
+
+| Model | Params | Context | Strengths | Best For |
+| :--- | ---: | ---: | :--- | :--- |
 | Command R+ | 104B | 128K | RAG-optimized, citations | Enterprise RAG |
 | Command R | 35B | 128K | Efficient RAG | Production RAG at scale |
 
-**Resources**
-- [Cohere on HuggingFace](https://huggingface.co/CohereForAI)
+</details>
+
+**Resources** — [HuggingFace](https://huggingface.co/CohereForAI)
+
+> ⚠️ **License**: CC-BY-NC-4.0 allows research only. Commercial deployment requires a Cohere enterprise license.
 
 ---
 
-## Benchmark Comparison Tables
+## 📊 Benchmark Tables
 
-### General Reasoning (MMLU-Pro / GPQA Diamond)
+> Results from model technical reports, [Open LLM Leaderboard v3](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard), and [LM Arena](https://lmarena.ai/). Run your own domain evals before shipping.
+
+### General Reasoning
 
 | Model | MMLU-Pro | GPQA Diamond | Notes |
-|---|---|---|---|
-| DeepSeek-V4-0324 | 81.2 | 71.5 | Frontier open model |
-| Qwen3.5-72B | 79.4 | 68.3 | Best Apache 2.0 at size |
+| :--- | ---: | ---: | :--- |
+| DeepSeek-V4-0324 | **81.2** | **71.5** | Best open model overall |
+| Qwen3.5-72B | 79.4 | 68.3 | Best Apache 2.0 |
 | Gemma4-70B | 78.9 | 67.1 | Google's flagship |
-| Llama 4 Maverick 17B | 73.5 | 59.2 | MoE efficiency |
-| Qwen3.5-32B | 75.1 | 63.8 | Best <40B model |
-| Mistral Small 4 | 68.3 | 55.7 | Efficiency leader |
 | QwQ-32B | 76.4 | 65.9 | Extended thinking |
+| Qwen3.5-32B | 75.1 | 63.8 | Best <40B |
+| Llama 4 Maverick 17B | 73.5 | 59.2 | MoE efficiency |
+| Mistral Small 4 | 68.3 | 55.7 | Efficiency leader |
 
-### Coding (HumanEval+ / SWE-bench Verified)
+### Coding
 
-| Model | HumanEval+ | SWE-bench | Notes |
-|---|---|---|---|
-| DeepSeek-Coder-V3 | 92.1 | 49.6 | Best open coder |
+| Model | HumanEval+ | SWE-bench Verified | Notes |
+| :--- | ---: | ---: | :--- |
+| DeepSeek-Coder-V3 | **92.1** | **49.6** | Best open coder |
 | Qwen3.5-72B | 90.8 | 46.3 | Strong general + code |
 | Qwen3.5-32B | 88.4 | 42.1 | Best <40B coder |
-| Codestral 22B | 87.9 | 40.5 | FIM, completion-optimized |
-| Gemma4-27B | 84.2 | 38.7 | Solid Google baseline |
+| Codestral 22B | 87.9 | 40.5 | FIM-optimized |
+| Gemma4-27B | 84.2 | 38.7 | Solid baseline |
 | Llama 3.3 70B | 83.6 | 37.2 | Mature ecosystem |
 
-### Math (AIME 2024 / 2025)
+### Math & Reasoning
 
 | Model | AIME 2024 | AIME 2025 | Notes |
-|---|---|---|---|
-| DeepSeek-R2 | 79.8 | 72.1 | CoT specialist |
+| :--- | ---: | ---: | :--- |
+| DeepSeek-R2 | **79.8** | **72.1** | Chain-of-thought specialist |
 | QwQ-32B | 72.4 | 65.3 | Best open reasoning model |
 | DeepSeek-V4-0324 | 68.9 | 61.2 | Strong general model |
 | Qwen3.5-72B | 63.1 | 56.8 | Competitive |
 | Gemma4-70B | 58.4 | 51.9 | Improving |
 
-### Multilingual (FLORES+ benchmark)
+### Multilingual (FLORES+)
 
 | Model | EN | ZH | DE | FR | JA | AR |
-|---|---|---|---|---|---|---|
-| Qwen3.5-72B | 94.1 | 91.8 | 88.3 | 87.9 | 86.2 | 82.4 |
-| GLM-5.1-32B | 91.2 | 93.4 | 82.1 | 81.8 | 80.5 | 76.3 |
-| Gemma4-70B | 93.8 | 85.2 | 87.9 | 88.4 | 84.1 | 79.8 |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen3.5-72B | **94.1** | 91.8 | 88.3 | 87.9 | **86.2** | **82.4** |
+| Gemma4-70B | 93.8 | 85.2 | **87.9** | **88.4** | 84.1 | 79.8 |
 | Llama 3.3 70B | 93.5 | 81.9 | 86.2 | 87.1 | 82.3 | 77.4 |
-
-> **Source**: Results drawn from model technical reports, LM Arena leaderboard, and Open LLM Leaderboard v3. Always run your own evals on your domain before shipping to production.
-
----
-
-## Licensing Guide
-
-This table answers: *can I use this commercially without restrictions?*
-
-| Model Family | License | Commercial Use | Derivative Works | Attribution Required | User Limit |
-|---|---|---|---|---|---|
-| Qwen 3.5 | Apache 2.0 | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| Gemma 4 | Apache 2.0 | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| DeepSeek V4 | MIT | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| Mistral Small 4 | Apache 2.0 | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| GLM-5.1 | Apache 2.0 | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| Phi-4 | MIT | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| Llama 4 | Community License | ⚠️ Restricted | ⚠️ Restricted | ✅ Yes | 700M MAU cap |
-| Llama 3.x | Community License | ⚠️ Restricted | ⚠️ Restricted | ✅ Yes | 700M MAU cap |
-| Mixtral / Mistral 7B | Apache 2.0 | ✅ Unrestricted | ✅ Yes | ✅ Yes | None |
-| Command R+ | CC-BY-NC-4.0 | ❌ Non-commercial | ⚠️ CC terms | ✅ Yes | Commercial license required |
-| Gemma 1/2 | Gemma License | ⚠️ Restricted | ⚠️ Restricted | ✅ Yes | Check terms |
-
-> **Key rule**: For fully permissive commercial deployment with no headaches, default to Apache 2.0 or MIT models. Qwen 3.5, Gemma 4, DeepSeek, and Mistral Small 4 are all safe choices.
+| GLM-5.1-32B | 91.2 | **93.4** | 82.1 | 81.8 | 80.5 | 76.3 |
 
 ---
 
-## Hardware Requirements
+## ⚖️ Licensing Guide
 
-### Minimum GPU VRAM to Run (BF16 / FP16)
+> Can I use this commercially without restrictions?
 
-| Model | Params | BF16 VRAM | Comfortable Setup |
-|---|---|---|---|
+| Model Family | License | Commercial | Derivatives | User Cap |
+| :--- | :---: | :---: | :---: | :---: |
+| Qwen 3.5 | `Apache 2.0` | ✅ | ✅ | None |
+| Gemma 4 | `Apache 2.0` | ✅ | ✅ | None |
+| DeepSeek V4 | `MIT` | ✅ | ✅ | None |
+| Mistral Small 4 | `Apache 2.0` | ✅ | ✅ | None |
+| GLM-5.1 | `Apache 2.0` | ✅ | ✅ | None |
+| Phi-4 | `MIT` | ✅ | ✅ | None |
+| Mixtral / Mistral 7B v0.3 | `Apache 2.0` | ✅ | ✅ | None |
+| Llama 4 | `Community` | ⚠️ | ⚠️ | 700M MAU |
+| Llama 3.x | `Community` | ⚠️ | ⚠️ | 700M MAU |
+| Gemma 1 / 2 | `Gemma License` | ⚠️ | ⚠️ | Check terms |
+| Command R / R+ | `CC-BY-NC-4.0` | ❌ | ⚠️ | Commercial license needed |
+
+> **Default rule**: For unrestricted commercial production, use Apache 2.0 or MIT. Qwen 3.5, Gemma 4, DeepSeek V4, Mistral Small 4, and Phi-4 are all safe.
+
+---
+
+## 💻 Hardware Requirements
+
+### Full Precision (BF16 / FP16)
+
+| Model | Params | VRAM Required | Minimum GPU Setup |
+| :--- | ---: | ---: | :--- |
 | Qwen3.5-0.5B | 0.5B | 1 GB | Any modern GPU |
-| Phi-4-mini | 3.8B | 8 GB | RTX 3070 / M2 |
-| Qwen3.5-7B | 7B | 14 GB | RTX 3080 / M2 Pro |
-| Mistral Small 4 | 22B | 44 GB | 2× RTX 3090 |
-| Qwen3.5-32B | 32B | 64 GB | 2× A100 40GB |
-| Gemma4-27B | 27B | 54 GB | 2× RTX 4090 |
-| Qwen3.5-72B | 72B | 144 GB | 2× A100 80GB |
-| DeepSeek-V4 | 685B | 1.4 TB | 8× H100 80GB |
+| Phi-4-mini | 3.8B | 8 GB | RTX 3070 · M2 |
+| Qwen3.5-7B | 7B | 14 GB | RTX 3080 · M2 Pro |
 | Llama 4 Scout 17B | 17B MoE | 38 GB | 2× RTX 4090 |
+| Mistral Small 4 | 22B | 44 GB | 2× RTX 3090 |
+| Gemma4-27B | 27B | 54 GB | 2× RTX 4090 |
+| Qwen3.5-32B | 32B | 64 GB | 2× A100 40GB |
+| DeepSeek-Coder-V3 | 33B | 66 GB | 2× A100 40GB |
+| Qwen3.5-72B | 72B | 144 GB | 2× A100 80GB |
+| DeepSeek-V4 | 685B MoE | ~1.4 TB | 8× H100 80GB |
 
-### With Quantization (Q4_K_M GGUF)
+### With Q4\_K\_M Quantization (Recommended)
 
-| Model | BF16 VRAM | Q4_K_M VRAM | Quality Loss |
-|---|---|---|---|
+| Model | Full VRAM | Q4\_K\_M VRAM | Quality Loss |
+| :--- | ---: | ---: | :---: |
 | Qwen3.5-7B | 14 GB | ~5 GB | Minimal |
 | Qwen3.5-32B | 64 GB | ~20 GB | Low |
+| DeepSeek-Coder-V3 | 66 GB | ~22 GB | Low |
 | Qwen3.5-72B | 144 GB | ~45 GB | Moderate |
 | Llama 3.3 70B | 140 GB | ~43 GB | Moderate |
-| DeepSeek-Coder-V3 | 66 GB | ~22 GB | Low |
 
-### CPU-Only Inference (Ollama / llama.cpp)
+### Apple Silicon (Unified Memory)
 
-Viable for development and light production up to ~13B models. Expect 5–15 tokens/sec on modern Apple Silicon (M3 Max+).
-
-| Hardware | Max Model Size | Notes |
-|---|---|---|
-| M3 Ultra (192GB) | 100B+ | Excellent for large open models |
-| M3 Max (48GB) | 32B Q4 | Good production option |
-| M3 Pro (36GB) | 20B Q4 | Solid dev workstation |
-| M2 (16GB) | 7B Q4 | Adequate for development |
-| High-end x86 + RAM | 70B+ (slow) | RAM bandwidth bottleneck |
+| Chip | RAM | Max Model | Tokens/sec (est.) |
+| :--- | ---: | :--- | ---: |
+| M3 Ultra | 192 GB | 100B+ Q4 | 15–30 |
+| M3 Max | 48 GB | Qwen3.5-32B Q4 | 20–40 |
+| M3 Pro | 36 GB | Mistral Small 4 Q4 | 15–25 |
+| M2 / M3 | 16 GB | Qwen3.5-7B Q4 | 30–50 |
+| M2 / M3 | 8 GB | Phi-4-mini Q4 | 40–60 |
 
 ---
 
-## Per-Task Recommendations
+## 🎯 Per-Task Recommendations
 
-### Coding Assistance
+### Coding
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Code generation (general) | DeepSeek-Coder-V3 33B | Qwen3.5-32B | DeepSeek specialized; Qwen more balanced |
-| Code completion (FIM) | Codestral 22B | Qwen3.5-7B | Codestral built for FIM |
-| Bug fixing / refactoring | Qwen3.5-72B | DeepSeek-V4 | Long context, strong reasoning |
-| Small model code | Qwen3.5-7B | Phi-4-mini | Best at size bracket |
-| SWE-bench / agent coding | DeepSeek-V4-0324 | Qwen3.5-72B | Highest SWE-bench open scores |
+| Use Case | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Code generation | DeepSeek-Coder-V3 33B | Qwen3.5-32B | DeepSeek specialized; Qwen more balanced |
+| FIM / code completion | Codestral 22B | Qwen3.5-7B | Codestral built specifically for FIM |
+| Bug fixing, refactoring | Qwen3.5-72B | DeepSeek-V4 | Long context + strong reasoning |
+| On-device code | Qwen3.5-7B | Phi-4-mini | Best at respective size bracket |
+| Agentic SWE tasks | DeepSeek-V4-0324 | Qwen3.5-72B | Highest SWE-bench open scores |
 
 ### Reasoning & Math
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Hard math (AIME-level) | DeepSeek-R2 | QwQ-32B | CoT specialists |
-| General reasoning | DeepSeek-V4 | Qwen3.5-72B | Frontier reasoning |
-| Fast reasoning (<40B) | QwQ-32B | Qwen3.5-32B | Best compact reasoner |
-| Scientific QA | DeepSeek-V4 | Gemma4-70B | GPQA performance |
+| Use Case | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Hard math (AIME-level) | DeepSeek-R2 | QwQ-32B | CoT specialists, extended thinking |
+| General reasoning | DeepSeek-V4 | Qwen3.5-72B | Frontier reasoning capacity |
+| Compact reasoner (<40B) | QwQ-32B | Qwen3.5-32B | Best reasoning under 40B |
+| Scientific QA | DeepSeek-V4 | Gemma4-70B | GPQA Diamond performance |
 
-### Multilingual Applications
+### Multilingual
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Chinese-English | Qwen3.5-72B | GLM-5.1-32B | Qwen trained heavily on Chinese |
-| European languages | Gemma4-70B | Mistral Small 4 | Strong EU language support |
+| Language Pair | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Chinese ↔ English | Qwen3.5-72B | GLM-5.1-32B | Qwen trained heavily on Chinese |
+| European languages | Gemma4-70B | Mistral Small 4 | Strong EU language coverage |
 | Japanese | Qwen3.5-32B | Gemma4-27B | Both strong; Qwen leads |
-| Arabic | Qwen3.5-72B | Gemma4-70B | Qwen best Arabic open model |
-| General multilingual | Qwen3.5-72B | — | Best overall multilingual open model |
+| Arabic | Qwen3.5-72B | Gemma4-70B | Best Arabic open model |
+| General multilingual | Qwen3.5-72B | — | Best overall open multilingual model |
 
 ### Vision & Multimodal
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Document OCR / understanding | Qwen3.5-VL-72B | Gemma4-27B | Qwen VL best open VLM |
+| Use Case | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Document OCR | Qwen3.5-VL-72B | Gemma4-27B | Qwen VL best open vision-language model |
 | Image QA | Qwen3.5-VL-7B | Llama 4 Scout | Efficient, strong |
-| Video understanding | GLM-5.1 + CogVideoX | Llama 4 Scout | Llama Scout has video context |
-| Chinese document OCR | GLM-4V | Qwen3.5-VL | GLM stronger on Chinese docs |
+| Video understanding | Llama 4 Scout | GLM + CogVideoX | Scout has 10M token video context |
+| Chinese doc OCR | GLM-4V | Qwen3.5-VL-7B | GLM stronger on Chinese documents |
 
 ### RAG & Long Context
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Enterprise RAG | Command R+ | Qwen3.5-72B | Command R+ citation-tuned |
-| Long context (1M+ tokens) | Llama 4 Scout 17B | Gemma4-70B | Scout has 10M context |
-| On-device RAG | Qwen3.5-7B | Phi-4 | Both fit 16GB VRAM |
+| Use Case | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Enterprise RAG | Command R+ | Qwen3.5-72B | Command R+ has built-in citation generation |
+| Long context (1M–10M) | Llama 4 Scout 17B | Gemma4-70B | Scout's 10M context is unmatched |
+| Self-hosted RAG | Qwen3.5-72B | Qwen3.5-32B | Strong retrieval + reasoning |
+| On-device RAG | Qwen3.5-7B | Phi-4 | Both fit 16 GB VRAM |
 
 ### Agentic / Tool Use
 
-| Use Case | Best Choice | Runner-Up | Notes |
-|---|---|---|---|
-| Function calling | Mistral Small 4 | Qwen3.5-32B | Mistral optimized for tool use |
-| Multi-step agent | Qwen3.5-72B | DeepSeek-V4 | Best planning + instruction-following |
+| Use Case | Best | Runner-Up | Notes |
+| :--- | :--- | :--- | :--- |
+| Function calling | Mistral Small 4 | Qwen3.5-32B | Mistral optimized specifically for tool use |
+| Multi-step agent | Qwen3.5-72B | DeepSeek-V4 | Best planning + instruction following |
 | Lightweight agent | Qwen3.5-7B | Mistral-7B | Tool calling at 7B scale |
 | Code agent | DeepSeek-Coder-V3 | Qwen3.5-32B | Highest agent-coding benchmarks |
 
 ---
 
-## Deployment Stacks
+## 🚀 Deployment Stacks
 
 ### Local Inference
 
-| Tool | Models Supported | Use Case | Notes |
-|---|---|---|---|
-| [Ollama](https://github.com/ollama/ollama) | All major families | Development, personal use | Easiest setup, Mac/Windows/Linux |
-| [LM Studio](https://lmstudio.ai/) | All GGUF models | Desktop GUI | Best UX for non-technical users |
-| [llama.cpp](https://github.com/ggml-org/llama.cpp) | All GGUF models | Performance, custom | Gold standard, most control |
-| [Jan](https://github.com/janhq/jan) | Major families | Desktop app | Open-source LM Studio alternative |
-| [GPT4All](https://github.com/nomic-ai/gpt4all) | Quantized models | Offline enterprise | Privacy-first, no cloud |
+| Tool | Best For | Platform | Notes |
+| :--- | :--- | :---: | :--- |
+| [Ollama](https://github.com/ollama/ollama) | Dev, personal use | All | Easiest setup; one-command model pull |
+| [LM Studio](https://lmstudio.ai/) | Non-technical users | Mac, Win | Best GUI/UX for exploring models |
+| [llama.cpp](https://github.com/ggml-org/llama.cpp) | Performance, control | All | Gold standard CPU/GPU inference |
+| [Jan](https://github.com/janhq/jan) | Privacy-first desktop | All | Open-source LM Studio alternative |
+| [GPT4All](https://github.com/nomic-ai/gpt4all) | Offline enterprise | All | Air-gapped, no telemetry |
 
 ### Production Inference Servers
 
-| Tool | Strengths | Best For | GPU |
-|---|---|---|---|
-| [vLLM](https://github.com/vllm-project/vllm) | Highest throughput, PagedAttention | High-traffic APIs | NVIDIA (best), AMD (beta) |
-| [TGI (Text Generation Inference)](https://github.com/huggingface/text-generation-inference) | HuggingFace native, streaming | HuggingFace ecosystem | NVIDIA, AMD, Gaudi |
-| [SGLang](https://github.com/sgl-project/sglang) | Structured generation, speed | Complex output schemas | NVIDIA |
-| [llama.cpp server](https://github.com/ggml-org/llama.cpp) | Low VRAM (quantized), CPU | Edge production | Any |
-| [Ollama (serve mode)](https://github.com/ollama/ollama) | Simple API, GGUF | Small teams, dev | Any |
-| [ExLlamaV2](https://github.com/turboderp/exllamav2) | Fast GPTQ inference | NVIDIA, quantized | NVIDIA |
-| [MLC-LLM](https://github.com/mlc-ai/mlc-llm) | Cross-platform, mobile | iOS/Android/web | Universal |
-| [Aphrodite](https://github.com/PygmalionAI/aphrodite-engine) | vLLM fork, long context | Large batches | NVIDIA |
+| Tool | Throughput | GPU | Best For |
+| :--- | :---: | :---: | :--- |
+| [vLLM](https://github.com/vllm-project/vllm) | ⭐⭐⭐⭐⭐ | NVIDIA, AMD | High-traffic APIs, PagedAttention |
+| [SGLang](https://github.com/sgl-project/sglang) | ⭐⭐⭐⭐⭐ | NVIDIA | Structured generation, complex schemas |
+| [TGI](https://github.com/huggingface/text-generation-inference) | ⭐⭐⭐⭐ | NVIDIA, AMD, Gaudi | HuggingFace ecosystem |
+| [ExLlamaV2](https://github.com/turboderp/exllamav2) | ⭐⭐⭐⭐ | NVIDIA | GPTQ/EXL2, fast quantized inference |
+| [MLC-LLM](https://github.com/mlc-ai/mlc-llm) | ⭐⭐⭐ | Universal | iOS/Android/web/desktop |
+| [Aphrodite](https://github.com/PygmalionAI/aphrodite-engine) | ⭐⭐⭐⭐ | NVIDIA | vLLM fork, better long-context batching |
+| [llama.cpp server](https://github.com/ggml-org/llama.cpp) | ⭐⭐⭐ | Any | Edge production, quantized, low VRAM |
+| [Ollama (serve mode)](https://github.com/ollama/ollama) | ⭐⭐ | Any | Small teams, simple OpenAI-compatible API |
 
-### Cloud / Managed Hosting
+### Managed Cloud APIs
 
-| Provider | Notable Models | Pricing Model | Notes |
-|---|---|---|---|
+| Provider | Notable Models | Pricing | Notes |
+| :--- | :--- | :---: | :--- |
 | [Groq](https://groq.com/) | Llama, Mistral, Gemma | Per-token | Fastest inference (LPU hardware) |
-| [Together AI](https://www.together.ai/) | 50+ open models | Per-token | Best open-model selection |
-| [Fireworks AI](https://fireworks.ai/) | Llama, Qwen, Mistral | Per-token | Speed-optimized |
-| [Replicate](https://replicate.com/) | Most open models | Per-second | Easy API, serverless |
-| [Modal](https://modal.com/) | Any model via custom deploy | Compute time | Infrastructure as code |
-| [Vast.ai](https://vast.ai/) | Self-managed H100s | GPU hours | Cheapest H100 access |
-| [RunPod](https://runpod.io/) | Self-managed, pod/serverless | GPU hours | Good for large model hosting |
-| [Cerebras](https://www.cerebras.net/) | Llama family | Per-token | Extreme speed (CS-3 wafer chip) |
+| [Together AI](https://www.together.ai/) | 50+ open models | Per-token | Best open-model catalog |
+| [Fireworks AI](https://fireworks.ai/) | Llama, Qwen, Mistral | Per-token | Speed + reliability optimized |
+| [Cerebras](https://www.cerebras.net/) | Llama family | Per-token | Extreme speed on CS-3 wafer chip |
 | [Hyperbolic](https://hyperbolic.xyz/) | Llama, Qwen, DeepSeek | Per-token | Low latency, competitive pricing |
+| [Replicate](https://replicate.com/) | Most open models | Per-second | Serverless, easy API |
+| [Modal](https://modal.com/) | Any (custom deploy) | Compute | Infrastructure-as-code, any model |
+| [Vast.ai](https://vast.ai/) | Self-managed | GPU hours | Cheapest H100 access |
+| [RunPod](https://runpod.io/) | Self-managed | GPU hours | Pod + serverless options |
 
 ---
 
-## Quantization Guide
+## 🗜️ Quantization Guide
 
 ### Format Comparison
 
-| Format | Tool | VRAM Reduction | Quality | Speed | Best For |
-|---|---|---|---|---|---|
-| GGUF Q2_K | llama.cpp | ~75% | Poor | Fast | Very constrained RAM |
-| GGUF Q4_K_M | llama.cpp | ~55% | Good | Fast | **Recommended default** |
-| GGUF Q5_K_M | llama.cpp | ~45% | Very Good | Good | Quality-critical tasks |
-| GGUF Q8_0 | llama.cpp | ~20% | Excellent | Moderate | Near-lossless |
-| GPTQ 4-bit | AutoGPTQ | ~55% | Good | Fast | NVIDIA production |
-| AWQ 4-bit | AutoAWQ | ~55% | Good | Fastest | NVIDIA, high throughput |
-| EXL2 | ExLlamaV2 | Variable | Good | Very Fast | NVIDIA, custom bit-rates |
-| BnB 4-bit | bitsandbytes | ~55% | Good | Moderate | Quick dev setup |
+| Format | VRAM Saved | Quality | Speed | Best For |
+| :--- | ---: | :---: | :---: | :--- |
+| GGUF Q2\_K | ~75% | ⭐⭐ | ⭐⭐⭐⭐ | Extreme RAM constraint only |
+| GGUF Q4\_K\_M | ~55% | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | **Recommended default** |
+| GGUF Q5\_K\_M | ~45% | ⭐⭐⭐⭐ | ⭐⭐⭐ | Quality-critical tasks |
+| GGUF Q8\_0 | ~20% | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Near-lossless |
+| AWQ 4-bit | ~55% | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | NVIDIA, max throughput |
+| GPTQ 4-bit | ~55% | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | NVIDIA production |
+| EXL2 | Variable | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | NVIDIA, custom bit-rates |
+| BnB 4-bit | ~55% | ⭐⭐⭐ | ⭐⭐⭐ | Quick dev setup (bitsandbytes) |
 
-### Where to Get Quantized Models
+### Where to Get Pre-Quantized Models
 
-- [Bartowski on HuggingFace](https://huggingface.co/bartowski) — best GGUF quantizations, all major models
-- [LoneStriker](https://huggingface.co/LoneStriker) — GGUF and EXL2
-- [TheBloke](https://huggingface.co/TheBloke) — large GPTQ/GGUF catalog (older models)
-- [mradermacher](https://huggingface.co/mradermacher) — GGUF quantizations
+| Curator | Formats | Coverage | Notes |
+| :--- | :---: | :--- | :--- |
+| [bartowski](https://huggingface.co/bartowski) | GGUF | All major models | **Best quality GGUF, recommended first** |
+| [mradermacher](https://huggingface.co/mradermacher) | GGUF | Wide coverage | Fast releases on new models |
+| [LoneStriker](https://huggingface.co/LoneStriker) | GGUF, EXL2 | Major models | Good EXL2 selection |
+| [TheBloke](https://huggingface.co/TheBloke) | GGUF, GPTQ | Older models | Large catalog, less active since 2025 |
 
 ---
 
-## Fine-Tuning Resources
+## 🔧 Fine-Tuning
 
 ### Frameworks
 
-| Tool | Stars | Method | Notes |
-|---|---|---|---|
-| [Unsloth](https://github.com/unslothai/unsloth) | 28k+ | LoRA/QLoRA | 2× faster, 60% less VRAM; **recommended default** |
-| [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) | 38k+ | LoRA/Full/RLHF | Best UI, supports 100+ models |
-| [Axolotl](https://github.com/axolotl-ai-cloud/axolotl) | 8k+ | LoRA/Full | Config-file driven, production-ready |
-| [TRL (HuggingFace)](https://github.com/huggingface/trl) | 10k+ | RLHF/DPO/GRPO | Reference implementation for alignment |
-| [torchtune](https://github.com/pytorch/torchtune) | 5k+ | Full/LoRA | Native PyTorch, easy to customize |
-| [ms-swift](https://github.com/modelscope/ms-swift) | 6k+ | LoRA/Full | Strong Qwen support, ModelScope |
+| Tool | Stars | Methods | Notes |
+| :--- | ---: | :--- | :--- |
+| [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) | 38k+ | LoRA, Full, RLHF, DPO | Best WebUI; supports 100+ models |
+| [Unsloth](https://github.com/unslothai/unsloth) | 28k+ | LoRA, QLoRA | **2× faster, 60% less VRAM — recommended default** |
+| [TRL](https://github.com/huggingface/trl) | 10k+ | RLHF, DPO, GRPO, PPO | HuggingFace reference implementation for alignment |
+| [Axolotl](https://github.com/axolotl-ai-cloud/axolotl) | 8k+ | LoRA, Full | Config-file driven; production battle-tested |
+| [ms-swift](https://github.com/modelscope/ms-swift) | 6k+ | LoRA, Full | Best Qwen support; ModelScope ecosystem |
+| [torchtune](https://github.com/pytorch/torchtune) | 5k+ | Full, LoRA | Native PyTorch; easiest to customize |
 
-### Key Techniques
+### Technique Reference
 
-| Technique | Use Case | Tools | Notes |
-|---|---|---|---|
-| LoRA | Efficient fine-tuning | Unsloth, Axolotl | Rank 16–64 typical; low VRAM |
-| QLoRA | Fine-tune on consumer GPUs | Unsloth, Axolotl | 4-bit base + LoRA adapters |
-| DPO | Alignment, preference | TRL | Replace RLHF for most use cases |
-| GRPO | Reasoning alignment | TRL, Unsloth | Used in DeepSeek-R1 recipe |
-| Full fine-tuning | Maximum quality | torchtune, Axolotl | Needs multi-GPU setup |
-| Distillation | Compress large → small | TRL, custom | Teach 7B from 72B outputs |
+| Technique | VRAM | Use Case | Notes |
+| :--- | :---: | :--- | :--- |
+| QLoRA | Low | Fine-tune on consumer GPU | 4-bit base + LoRA adapters |
+| LoRA | Medium | Efficient fine-tuning | Rank 16–64; best quality/cost tradeoff |
+| DPO | Medium | Alignment, preference | Replaces RLHF for most cases |
+| GRPO | Medium | Reasoning alignment | DeepSeek-R1 training recipe |
+| Full fine-tuning | High | Maximum quality | Multi-GPU required |
+| Distillation | Medium | Compress large → small | Teach 7B from 72B teacher outputs |
 
 ### Datasets
 
-| Dataset | Size | Use Case | License |
-|---|---|---|---|
+| Dataset | Examples | Use Case | License |
+| :--- | ---: | :--- | :---: |
 | [Open-Hermes-2.5](https://huggingface.co/datasets/teknium/OpenHermes-2.5) | 1M | General instruction | Apache 2.0 |
 | [Magpie-Pro](https://huggingface.co/datasets/Magpie-Align/Magpie-Pro-1M-v0.1) | 1M | High-quality instruct | Apache 2.0 |
-| [UltraFeedback](https://huggingface.co/datasets/openbmb/UltraFeedback) | 250K | DPO/preference | Apache 2.0 |
-| [Capybara](https://huggingface.co/datasets/LDJnr/Capybara) | 16K | Reasoning, long-form | Apache 2.0 |
 | [SlimOrca](https://huggingface.co/datasets/Open-Orca/SlimOrca) | 500K | Instruction following | MIT |
+| [UltraFeedback](https://huggingface.co/datasets/openbmb/UltraFeedback) | 250K | DPO / preference | Apache 2.0 |
 | [MetaMathQA](https://huggingface.co/datasets/meta-math/MetaMathQA) | 395K | Math reasoning | MIT |
 | [CodeFeedback](https://huggingface.co/datasets/m-a-p/CodeFeedback-Filtered-Instruction) | 156K | Code instruction | Apache 2.0 |
+| [Capybara](https://huggingface.co/datasets/LDJnr/Capybara) | 16K | Reasoning, long-form | Apache 2.0 |
 
 ---
 
-## Evaluation Tools
+## 📏 Evaluation Tools
 
 | Tool | What It Measures | Notes |
-|---|---|---|
-| [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) | Comprehensive benchmarks | EleutherAI standard, used by Open LLM Leaderboard |
-| [HELMET](https://github.com/princeton-nlp/HELMET) | Long-context eval | Best for context window validation |
-| [LiveCodeBench](https://github.com/LiveCodeBench/LiveCodeBench) | Coding, contamination-free | Fresh problems, harder to overfit |
-| [Braintrust](https://www.braintrust.dev/) | Production eval, LLM-as-judge | Best for custom domain evaluation |
+| :--- | :--- | :--- |
+| [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) | Comprehensive benchmarks | EleutherAI standard; powers Open LLM Leaderboard |
+| [LiveCodeBench](https://github.com/LiveCodeBench/LiveCodeBench) | Coding, contamination-free | Fresh problems; harder to game |
+| [HELMET](https://github.com/princeton-nlp/HELMET) | Long-context tasks | Best for validating context window claims |
+| [Braintrust](https://www.braintrust.dev/) | Custom domain, LLM-as-judge | Best for production eval on your own data |
 | [Langfuse](https://github.com/langfuse/langfuse) | Tracing + eval in production | Open-source, self-hostable |
-| [RAGAS](https://github.com/explodinggradients/ragas) | RAG evaluation | Standard for retrieval-augmented systems |
-| [DeepEval](https://github.com/confident-ai/deepeval) | Unit-test-style eval | Developer-friendly, many metrics |
-| [PromptFoo](https://github.com/promptfoo/promptfoo) | Red teaming + eval | CI-integrated, adversarial testing |
+| [RAGAS](https://github.com/explodinggradients/ragas) | RAG pipelines | Standard for retrieval-augmented evaluation |
+| [DeepEval](https://github.com/confident-ai/deepeval) | Unit-test-style eval | Developer-friendly; CI-integratable |
+| [PromptFoo](https://github.com/promptfoo/promptfoo) | Red teaming + adversarial | Best for safety and robustness testing |
 
 ---
 
-## Community & Leaderboards
+## 🌐 Community & Leaderboards
 
-### Leaderboards
+### Live Leaderboards
 
-| Resource | What It Ranks | Notes |
-|---|---|---|
-| [Open LLM Leaderboard v3](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) | Open models, standardized benchmarks | HuggingFace canonical leaderboard |
-| [LM Arena (Chatbot Arena)](https://lmarena.ai/) | Human preference, blind A/B | Best for real-world quality judgment |
-| [BigCodeBench](https://bigcode-bench.github.io/) | Code generation | Best coding leaderboard |
-| [SWE-bench Leaderboard](https://www.swebench.com/) | Real GitHub issue resolution | Hardest coding benchmark |
-| [SEAL Leaderboard](https://scale.com/leaderboard) | Scale AI's expert evaluation | Strong contamination controls |
+| Leaderboard | Focus | Notes |
+| :--- | :--- | :--- |
+| [Open LLM Leaderboard v3](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) | Standardized benchmarks | HuggingFace canonical; most cited |
+| [LM Arena (Chatbot Arena)](https://lmarena.ai/) | Human preference, blind A/B | Best proxy for real-world quality |
+| [BigCodeBench](https://bigcode-bench.github.io/) | Code generation | Best dedicated coding leaderboard |
+| [SWE-bench](https://www.swebench.com/) | Real GitHub issue resolution | Hardest coding benchmark; most realistic |
+| [SEAL Leaderboard](https://scale.com/leaderboard) | Expert evaluation | Strong contamination controls |
 
 ### Communities
 
-| Community | Platform | Members | Focus |
-|---|---|---|---|
-| [r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/) | Reddit | 688k+ | Self-hosting, model releases, benchmarks |
-| [r/MachineLearning](https://www.reddit.com/r/MachineLearning/) | Reddit | 3M+ | Research, new models |
+| Community | Platform | Size | Focus |
+| :--- | :---: | ---: | :--- |
+| [r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/) | Reddit | 688k+ | Self-hosting, benchmarks, model releases |
+| [r/MachineLearning](https://www.reddit.com/r/MachineLearning/) | Reddit | 3M+ | Research, new models, papers |
 | [HuggingFace Discord](https://discord.gg/huggingface) | Discord | Active | Model releases, fine-tuning help |
-| [EleutherAI Discord](https://discord.gg/eleutherai) | Discord | Active | Open-source training, eval |
-| [AI Twitter/X](https://twitter.com/i/lists/1589462940141228038) | X | — | Real-time model releases |
+| [EleutherAI Discord](https://discord.gg/eleutherai) | Discord | Active | Open-source training and eval |
 
-### Tracking New Releases
+### Stay Updated
 
 - [HuggingFace Daily Papers](https://huggingface.co/papers) — research papers same day as arXiv
-- [TheAIGrid Newsletter](https://theaigrid.com/) — weekly model release roundup
-- [Latent Space Podcast](https://www.latent.space/) — deep technical breakdowns
-- [Simon Willison's blog](https://simonwillison.net/) — practitioner notes on new models
+- [Latent Space Podcast](https://www.latent.space/) — deep technical breakdowns of new models
+- [Simon Willison's blog](https://simonwillison.net/) — practitioner notes on every major release
+- [TheAIGrid Newsletter](https://theaigrid.com/) — weekly roundup of model releases
 
 ---
 
 ## Contributing
 
-Contributions welcome. PRs accepted for:
+PRs welcome for:
 
-- New model releases with benchmark data
-- Hardware requirement corrections
+- New model releases (with benchmark data and license info)
+- Hardware requirement corrections or additions
 - Deployment stack updates
 - New evaluation tools
-- Per-task recommendation updates
+- Per-task recommendation updates based on new evidence
 
-**Requirements for PRs:**
-1. Model entries must include license, parameter count, and context window
-2. Benchmark numbers must cite source
-3. No vendor-sponsored placements without disclosure
-4. No entries for non-released models (announcement ≠ release)
+**PR requirements:**
+1. Model entries must include license, parameter count, and context window length
+2. Benchmark numbers must cite the source (link in PR description)
+3. No vendor-sponsored placements without explicit disclosure
+4. No pre-release models — announcement ≠ release; weights must be publicly downloadable
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 ---
 
-## License
+<div align="center">
 
 [![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
 
-This list is CC0. No rights reserved.
+**CC0 — No rights reserved.**
+
+*If this list saved you research time, consider starring it and sharing it with a colleague.*
+
+</div>
