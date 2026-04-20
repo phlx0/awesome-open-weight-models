@@ -1,0 +1,41 @@
+name: Check Links
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at midnight UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+
+jobs:
+  linkcheck:
+    name: Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      - name: Run lychee
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >
+            --cache
+            --max-cache-age 1d
+            --exclude "https://twitter.com"
+            --exclude "https://x.com"
+            --exclude "https://discord.gg"
+            --exclude-mail
+            --timeout 30
+            --retry-wait-time 5
+            --max-retries 3
+            README.md
+          fail: true
+          jobSummary: true

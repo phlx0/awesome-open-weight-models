@@ -1,0 +1,65 @@
+name: Add a resource
+description: Suggest a model, tool, or resource to add to the list
+title: "Add: "
+labels: ["addition"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a resource. Please fill out all fields — incomplete submissions will be closed.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - New model
+        - Inference tool / server
+        - Fine-tuning framework
+        - Evaluation tool
+        - Dataset
+        - Cloud / managed API
+        - Community resource
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      placeholder: e.g. Qwen3.5-32B
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      placeholder: https://huggingface.co/...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Why should this be added?
+      description: What makes this worth including? Be specific — general praise is not enough.
+    validations:
+      required: true
+
+  - type: input
+    id: license
+    attributes:
+      label: License (for models)
+      placeholder: e.g. Apache-2.0, MIT, Llama Community License
+    validations:
+      required: false
+
+  - type: input
+    id: benchmark_source
+    attributes:
+      label: Benchmark source URL (if proposing a recommendation table entry)
+      placeholder: https://arxiv.org/abs/...
+    validations:
+      required: false

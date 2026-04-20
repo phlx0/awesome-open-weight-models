@@ -1,0 +1,37 @@
+name: Broken or outdated link
+description: Report a dead link, wrong URL, or outdated information
+title: "Fix: "
+labels: ["bug", "link"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where is the broken link?
+      description: Section name and model/tool name
+      placeholder: e.g. Deployment Stacks > Production Inference Servers > vLLM
+    validations:
+      required: true
+
+  - type: input
+    id: broken_url
+    attributes:
+      label: Broken URL
+      placeholder: https://...
+    validations:
+      required: true
+
+  - type: input
+    id: correct_url
+    attributes:
+      label: Correct URL (if known)
+      placeholder: https://...
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Is the information itself outdated, not just the link?
+    validations:
+      required: false
